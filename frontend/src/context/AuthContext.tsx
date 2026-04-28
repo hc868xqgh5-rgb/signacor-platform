@@ -20,18 +20,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedToken = localStorage.getItem('signacore_token');
     const savedUser = localStorage.getItem('signacore_user');
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+
+    try {
+      if (
+        savedToken &&
+        savedUser &&
+        savedToken !== 'undefined' &&
+        savedUser !== 'undefined' &&
+        savedUser !== 'null'
+      ) {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+      } else {
+        localStorage.removeItem('signacore_token');
+        localStorage.removeItem('signacore_user');
+      }
+    } catch {
+      localStorage.removeItem('signacore_token');
+      localStorage.removeItem('signacore_user');
     }
+
     setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
     const res = await api.post('/auth/login', { email, password });
+
+    if (!res.data?.token || !res.data?.user) {
+      throw new Error('Invalid login response');
+    }
+
     const { token: newToken, user: newUser } = res.data;
+
     localStorage.setItem('signacore_token', newToken);
     localStorage.setItem('signacore_user', JSON.stringify(newUser));
+
     setToken(newToken);
     setUser(newUser);
   };
