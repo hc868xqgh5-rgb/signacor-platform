@@ -123,8 +123,8 @@ export default function JobsPage() {
         ...job,
         client_name:
           job.client_name ||
-          clientMap.get(job.client_id)?.company_name ||
-          clientMap.get(job.client_id)?.trading_name ||
+          (clientMap.get(job.client_id) as any)?.company_name ||
+          (clientMap.get(job.client_id) as any)?.trading_name ||
           'Unknown Client',
       }));
 
