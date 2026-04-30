@@ -72,24 +72,74 @@ const { useState, useEffect, useRef, useMemo } = React;
    Priority: localStorage (live edits) → sgr-data tag (saved file) → INITIAL_* constants
 ═══════════════════════════════════════════════════════════ */
 const DATA_VERSION = 4; // bump this to wipe stale localStorage caches
-function loadPersistedData() {
-  // 1. localStorage — always up-to-date within the same browser/user
+const API_STATE_URL = 'https://signacor-api.onrender.com/api/app-state';
+const STORAGE_KEY = 'sgr_platform_data';
+
+function validState(d) {
+  return d && Array.isArray(d.jobs) && d.v === DATA_VERSION;
+}
+
+function loadServerStateSync() {
+  // This is intentionally synchronous so the original demo app can start
+  // with server data before React initialises its state.
   try {
-    const ls = localStorage.getItem('sgr_platform_data');
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', API_STATE_URL, false);
+    xhr.send(null);
+
+    if (xhr.status >= 200 && xhr.status < 300 && xhr.responseText) {
+      const d = JSON.parse(xhr.responseText);
+      if (validState(d)) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+        return d;
+      }
+    }
+  } catch(e) {
+    console.warn('Could not load server state; using browser/file data.', e);
+  }
+
+  return null;
+}
+
+function loadPersistedData() {
+  // 1. PostgreSQL/server state — shared across devices
+  const serverState = loadServerStateSync();
+  if (serverState) return serverState;
+
+  // 2. localStorage — browser fallback/offline edits
+  try {
+    const ls = localStorage.getItem(STORAGE_KEY);
     if (ls) {
       const d = JSON.parse(ls);
-      // Version guard: discard data from older schema (e.g. old sample jobs)
-      if (d && Array.isArray(d.jobs) && d.v === DATA_VERSION) return d;
-      // Stale version → clear it so we fall through to the file tag or INITIAL_*
-      localStorage.removeItem('sgr_platform_data');
+      if (validState(d)) return d;
+      localStorage.removeItem(STORAGE_KEY);
     }
   } catch(e) {}
-  // 2. Embedded data tag — set when the file was last saved
+
+  // 3. Embedded data tag — set when the file was last saved
   try {
     const tag = document.getElementById('sgr-data');
-    if (tag) { const d = JSON.parse(tag.textContent); if (d && Array.isArray(d.jobs)) return d; }
+    if (tag) {
+      const d = JSON.parse(tag.textContent);
+      if (validState(d) || (d && Array.isArray(d.jobs))) return d;
+    }
   } catch(e) {}
+
   return null; // signals: use INITIAL_* constants below
+}
+
+let __sgrSaveTimer = null;
+function persistStateToServer(payload) {
+  try {
+    clearTimeout(__sgrSaveTimer);
+    __sgrSaveTimer = setTimeout(function(){
+      fetch(API_STATE_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(function(e){ console.warn('Server save failed', e); });
+    }, 800);
+  } catch(e) {}
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -11583,10 +11633,39 @@ function App() {
   const [completeProducts, setCompleteProducts] = useState(_saved ? (_saved.completeProducts||[])  : []);
   const [payrollRecords,   setPayrollRecords]   = useState(_saved ? (_saved.payrollRecords||[])    : []);
 
-  // Auto-sync both users' changes to localStorage (shared within same browser)
+  // Auto-sync changes to localStorage and PostgreSQL/server state
   useEffect(()=>{
-    try { localStorage.setItem('sgr_platform_data', JSON.stringify({v:DATA_VERSION, jobs, inventory, quotes, customers, suppliers, assets, employees, leaveRequests, disciplinary, savedCalcs, purchaseOrders, savedImports, bankTxns, chartOfAccounts, accInvoices, accBills, completeProducts, payrollRecords, logo:logoDataUrl, utLogo:utLogoDataUrl, sigOTSmit, savedAt:lastSaved})); } catch(e) {}
-  }, [jobs, inventory, quotes, customers, suppliers, assets, employees, leaveRequests, disciplinary, savedCalcs, purchaseOrders, payrollRecords, logoDataUrl]);
+    try {
+      const payload = {
+        v: DATA_VERSION,
+        jobs,
+        inventory,
+        quotes,
+        customers,
+        suppliers,
+        assets,
+        employees,
+        leaveRequests,
+        disciplinary,
+        savedCalcs,
+        purchaseOrders,
+        savedImports,
+        bankTxns,
+        chartOfAccounts,
+        accInvoices,
+        accBills,
+        completeProducts,
+        payrollRecords,
+        logo: logoDataUrl,
+        utLogo: utLogoDataUrl,
+        sigOTSmit,
+        savedAt: lastSaved
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      persistStateToServer(payload);
+    } catch(e) {}
+  }, [jobs, inventory, quotes, customers, suppliers, assets, employees, leaveRequests, disciplinary, savedCalcs, purchaseOrders, savedImports, bankTxns, chartOfAccounts, accInvoices, accBills, completeProducts, payrollRecords, logoDataUrl, utLogoDataUrl, sigOTSmit, lastSaved]);
 
   function handleLogin(u){ setUser(u); setPage('dashboard'); setEntityFilter(null); }
   function handleLogout(){ setUser(null); setPage('dashboard'); setEntityFilter(null); }
