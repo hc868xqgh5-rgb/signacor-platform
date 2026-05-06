@@ -5,14 +5,24 @@
     "lib": ["ES2020"],
     "outDir": "./dist",
     "rootDir": "./src",
+<<<<<<< HEAD
     "strict": true,
+=======
+    "strict": false,
+>>>>>>> 92d9217743a805f7dde9d718392ab63cc36c3be3
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+<<<<<<< HEAD
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true
+=======
+    "declaration": false,
+    "sourceMap": true,
+    "noImplicitAny": false
+>>>>>>> 92d9217743a805f7dde9d718392ab63cc36c3be3
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

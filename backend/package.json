@@ -19,9 +19,14 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "pg": "^8.11.5",
+<<<<<<< HEAD
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+=======
+    "uuid": "^9.0.1",
+    "typescript": "^5.4.5",
+>>>>>>> 92d9217743a805f7dde9d718392ab63cc36c3be3
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
@@ -29,8 +34,15 @@
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.12.7",
     "@types/pg": "^8.11.5",
+<<<<<<< HEAD
     "@types/uuid": "^9.0.8",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.4.5"
+=======
+    "@types/uuid": "^9.0.8"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0"
+>>>>>>> 92d9217743a805f7dde9d718392ab63cc36c3be3
   }
 }

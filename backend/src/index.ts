@@ -13,6 +13,10 @@ import calculatorsRoutes from './routes/calculators';
 import dashboardRoutes from './routes/dashboard';
 import inventoryRoutes from './routes/inventory';
 import importsRoutes from './routes/imports';
+<<<<<<< HEAD
+=======
+import appStateRoutes from './routes/appState';
+>>>>>>> 92d9217743a805f7dde9d718392ab63cc36c3be3
 import { errorHandler, notFound } from './middleware/errorHandler';
 
 dotenv.config();
@@ -21,6 +25,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ── Middleware ────────────────────────────────────────────────
+<<<<<<< HEAD
 app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
@@ -29,6 +34,18 @@ app.use(cors({
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
+=======
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+}));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+>>>>>>> 92d9217743a805f7dde9d718392ab63cc36c3be3
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/health', (_req, res) => {
@@ -45,6 +62,10 @@ app.use('/api/calculators',   calculatorsRoutes);
 app.use('/api/dashboard',     dashboardRoutes);
 app.use('/api/inventory',     inventoryRoutes);
 app.use('/api/imports',       importsRoutes);
+<<<<<<< HEAD
+=======
+app.use('/api/app-state',     appStateRoutes);
+>>>>>>> 92d9217743a805f7dde9d718392ab63cc36c3be3
 
 // ── Error handling ────────────────────────────────────────────
 app.use(notFound);
