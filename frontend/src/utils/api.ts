@@ -1,11 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-<<<<<<< HEAD
   baseURL: '/api',
-=======
-  baseURL: 'https://signacor-api.onrender.com/api',
->>>>>>> 92d9217743a805f7dde9d718392ab63cc36c3be3
   headers: { 'Content-Type': 'application/json' },
 });
 
